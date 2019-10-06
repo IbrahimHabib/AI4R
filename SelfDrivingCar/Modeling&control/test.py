@@ -54,26 +54,30 @@ v_data = np.zeros_like(t_data)
 w_data = np.zeros_like(t_data)
 v_data[:] = v
 
+
+
 for i in range(t_data.shape[0]):
     x_data[i] = model.xc
     y_data[i] = model.yc
-    if i < 375 or i > 1875:
+    if i <= 350 or i >= 1800:
         if model.delta < np.arctan(2 / 8):
             model.step(v_data[i], model.w_max)
+            w_data[i] = model.w_max
         else:
             model.step(v_data[i], 0)
-    if 375 < i < 1875:
+            w_data[i] = 0
+    if 350 < i < 1800:
         if model.delta > np.arctan(-2 / 8):
             model.step(v_data[i], -model.w_max)
+            w_data[i] = -model.w_max
         else:
             model.step(v_data[i], 0)
-    if i == 375:
-        model.step(v_data[i], -model.w_max)
-    if i == 1875:
-        model.step(v_data[i], model.w_max)
+            w_data[i] = 0
+
 
 plt.axis('equal')
 plt.plot(x_data, y_data, label='Learner Model')
 # plt.plot(x_solution, y_solution,label='Solution Model')
 plt.legend()
 plt.show()
+print(w_data)
