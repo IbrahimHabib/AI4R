@@ -2,6 +2,18 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 
+"""
+Model equations
+--------------
+𝑥˙𝑐=𝑣cos(𝜃+𝛽)
+𝑦˙𝑐=𝑣sin(𝜃+𝛽)
+𝜃˙=𝑣cos𝛽tan𝛿/𝐿
+𝛿˙=𝜔
+𝛽=tan−1(𝑙𝑟tan𝛿/𝐿)
+tan𝛿=𝐿/𝑟 𝛿=tan−1(𝐿/𝑟)
+𝑣=𝑑/𝑡
+"""
+
 
 class Bicycle():
     def __init__(self):
