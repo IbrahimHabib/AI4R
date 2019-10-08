@@ -1,4 +1,6 @@
 import sys
+from typing import Any, Union
+
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
@@ -70,5 +72,21 @@ class Vehicle(Vehicle):
         # ==================================
         #  Implementation of vehicle model
         # ==================================
-        
+        # Engine torque
+        Te: Union[float, Any] = throttle * (self.a_0 + self.a_1 * self.w_e + self.a_2 * self.w_e ** 2)
+        # Load forces
+        # Aerodynamic force
+        Faero = 0.5 * self.c_a * self.v ** 2
+        # Friction force
+        Rx = self.c_r1 * self.v
+        # Gravitational force
+        Fg = self.m * self.g * np.sin(alpha)
+        Fload = Faero + Rx + Fg
+        Ww = self.w_e * self.GR
+        S = (Ww * self.r_e - self.v) / self.v
+        if abs(S) < 1:
+            Fx = self.c * S
+        else:
+            Fx = self.F_max
+
         pass
