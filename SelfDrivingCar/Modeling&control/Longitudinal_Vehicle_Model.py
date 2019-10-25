@@ -72,21 +72,95 @@ class Vehicle(Vehicle):
         # ==================================
         #  Implementation of vehicle model
         # ==================================
-        # Engine torque
-        Te: Union[float, Any] = throttle * (self.a_0 + self.a_1 * self.w_e + self.a_2 * self.w_e ** 2)
-        # Load forces
         # Aerodynamic force
-        Faero = 0.5 * self.c_a * self.v ** 2
-        # Friction force
-        Rx = self.c_r1 * self.v
+        F_aero = self.c_a * self.v * self.v
+        # Resistance force
+        R_x = self.c_r1 * self.v
         # Gravitational force
-        Fg = self.m * self.g * np.sin(alpha)
-        Fload = Faero + Rx + Fg
-        Ww = self.w_e * self.GR
-        S = (Ww * self.r_e - self.v) / self.v
-        if abs(S) < 1:
-            Fx = self.c * S
+        F_g = self.m * self.g * np.sin(alpha)
+        # Load force on the vehicle
+        F_load = F_aero + R_x + F_g
+        # Torque generated from the vehicle engine
+        T_e = throttle * (self.a_0 + self.a_1 * self.w_e + self.a_2 * self.w_e * self.w_e)
+        # Wheels speed
+        W_w = self.GR * self.w_e
+        r_eff = self.v / W_w
+        # Slip ratio
+        s = (W_w * self.r_e - self.v) / self.v
+        cs = self.c * s
+
+        if abs(s) < 1:
+            F_x = cs
         else:
-            Fx = self.F_max
+            F_x = self.F_max
+        # Motion equations
+        self.x = self.x + self.v * self.sample_time
+        self.v = self.v + self.a * self.sample_time
+        self.a = (F_x - F_load) / self.m
+        self.w_e = self.w_e + self.w_e_dot * self.sample_time
+        self.w_e_dot = (T_e - self.GR * self.r_e * F_load) / self.J_e
 
         pass
+
+
+sample_time = 0.01
+time_end = 100
+model = Vehicle()
+
+t_data = np.arange(0, time_end, sample_time)
+v_data = np.zeros_like(t_data)
+x_data = np.zeros_like(t_data)
+
+# throttle percentage between 0 and 1
+throttle = 0.2
+
+# incline angle (in radians)
+alpha = 0
+
+for i in range(t_data.shape[0]):
+    x_data[i] = model.x
+    v_data[i] = model.v
+    model.step(throttle, alpha)
+
+#plt.plot(t_data, v_data)
+# plt.plot(x_data)
+#plt.show()
+time_end = 20
+t_data = np.arange(0, time_end, sample_time)
+x_data = np.zeros_like(t_data)
+v_data = np.zeros_like(t_data)
+throttle_data = np.zeros_like(t_data)
+alpha_data = np.zeros_like(t_data)
+
+# reset the states
+model.reset()
+
+for i in range(t_data.shape[0]):
+    if 0 <= i < 500:
+        throttle = 0.2 + 0.0006 * i
+    elif 500 <= i < 1500:
+        throttle = 0.5
+    elif 1500 <= i < 2000:
+        throttle = 2 - 0.001 * i
+
+    if model.x < 60:
+        alpha = 0.05
+    elif 60 <= model.x <= 150:
+        alpha = 0.1
+    elif model.x > 150:
+        alpha = 0
+
+    alpha_data[i] = alpha
+    throttle_data[i] = throttle
+    x_data[i] = model.x
+    v_data[i] = model.v
+    model.step(throttle, alpha)
+
+
+# Plot x vs t for visualization
+# plt.plot(t_data, x_data,label = 'x')
+plt.plot(v_data, label='v')
+# plt.plot(throttle_data,label = 'throttle')
+# plt.plot(alpha_data,label = 'alpha')
+plt.legend()
+plt.show()
